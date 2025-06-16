@@ -1,10 +1,24 @@
+FROM debian AS downloader
+
+RUN apt-get update \
+    && apt-get install -y jq wget \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PS_VERSION $ps_version
+RUN API_SEARCH_PS_VERSION="$PS_VERSION" | sed -e 's/\./[.]/g' -e 's/x$//g'
+
+# Get info about PrestaShop releases
+ADD https://api.prestashop-project.org/prestashop /tmp/distribution-api/prestashop.json
+# Get PrestaShop
+RUN wget $( \
+        jq -r --arg REG_EXP "^${API_SEARCH_PS_VERSION}" '. | map(select(.version | test($REG_EXP)))[0].zip_download_url' /tmp/distribution-api/prestashop.json \
+    ) -O /tmp/prestashop.zip
+
+
 FROM prestashop/base:$container_version
 LABEL maintainer="PrestaShop Core Team <coreteam@prestashop.com>"
 
-ENV PS_VERSION $ps_version
-
-# Get PrestaShop
-ADD $ps_url /tmp/prestashop.zip
+COPY --from=downloader /tmp/prestashop.zip /tmp/prestashop.zip
 
 # Extract
 RUN mkdir -p /tmp/data-ps \

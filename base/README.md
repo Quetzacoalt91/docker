@@ -25,3 +25,5 @@ But those lines instead:
 # PHP < 7.4 have an old syntax to install GD. See https://github.com/docker-library/php/issues/912
 RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-webp-dir=/usr/include
 ```
+
+on this line, some changes to trigger a test on github action
